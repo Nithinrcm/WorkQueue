@@ -501,68 +501,66 @@ const DocumentViewer = () => {
                       {catFields.map((field) => (
                         <div
                           key={field.key}
-                          className="relative px-2 pr-16 py-1 transition-all duration-100 cursor-pointer"
+                          className="px-2 py-1 transition-all duration-100 cursor-pointer"
                           onClick={() => handleFieldClick(field.key)}
                         >
-                          <div className="mb-2 flex items-center">
-                            <Label className="text-[11px] font-semibold text-foreground uppercase tracking-wider pointer-events-none flex-1 flex items-center gap-1">
+                          <div className="flex items-center gap-2">
+                            <Label className="text-[11px] font-semibold text-foreground uppercase tracking-wider pointer-events-none flex-none w-1/3">
                               {field.label}
                             </Label>
 
-                            {/* Cluster the confidence pill (edit button removed) */}
-                            <div className="absolute right-3 z-10 flex items-center gap-2">
-                              {typeof field.confidence === "number" && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div>
-                                      <span
-                                        className={
-                                          `text-[11px] font-medium px-2 py-0.5 rounded-full bg-transparent select-none ` +
-                                          (field.confidence >= 95
-                                            ? "text-success"
-                                            : field.confidence >= 90
-                                              ? "text-warning"
-                                              : "text-destructive")
-                                        }
-                                      >
-                                        {Math.round(field.confidence)}%
-                                      </span>
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    Confidence: {field.confidence}%
-                                  </TooltipContent>
-                                </Tooltip>
+                            <div className="flex-1">
+                              {!approved ? (
+                                <Input
+                                  value={field.value}
+                                  onChange={(e) =>
+                                    updateField(field.key, e.target.value)
+                                  }
+                                  onFocus={() => handleFieldClick(field.key)}
+                                  onBlur={() => handleSaveAndClose(field.key)}
+                                  className={`h-8 text-sm bg-background border-border ${
+                                    activeField === field.key
+                                      ? "bg-primary/8 ring-1 ring-primary/25"
+                                      : ""
+                                  } text-foreground w-full hover:bg-muted/45`}
+                                />
+                              ) : (
+                                <div
+                                  className={`rounded-md bg-background border border-border px-2 py-1 text-muted-foreground font-mono text-sm w-full ${
+                                    activeField === field.key
+                                      ? "bg-primary/8 ring-1 ring-primary/25"
+                                      : ""
+                                  }`}
+                                >
+                                  {field.value}
+                                </div>
                               )}
+                            </div>
 
-                              {/* direct inline editing available; no buttons */}
-                            </div>
+                            {typeof field.confidence === "number" && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div>
+                                    <span
+                                      className={
+                                        `text-[11px] font-medium px-2 py-0.5 rounded-full bg-transparent select-none ` +
+                                        (field.confidence >= 95
+                                          ? "text-success"
+                                          : field.confidence >= 90
+                                            ? "text-warning"
+                                            : "text-destructive")
+                                      }
+                                    >
+                                      {Math.round(field.confidence)}%
+                                    </span>
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Confidence: {field.confidence}%
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
                           </div>
-                          {!approved ? (
-                            <Input
-                              value={field.value}
-                              onChange={(e) =>
-                                updateField(field.key, e.target.value)
-                              }
-                              onFocus={() => handleFieldClick(field.key)}
-                              onBlur={() => handleSaveAndClose(field.key)}
-                              className={`mt-1 h-8 text-sm bg-background border-border ${
-                                activeField === field.key
-                                  ? "bg-primary/8 ring-1 ring-primary/25"
-                                  : ""
-                              } text-foreground pr-20 w-full hover:bg-muted/45`}
-                            />
-                          ) : (
-                            <div
-                              className={`mt-1 rounded-md bg-background border border-border px-2 py-2 text-muted-foreground font-mono text-sm pr-20 w-full ${
-                                activeField === field.key
-                                  ? "bg-primary/8 ring-1 ring-primary/25"
-                                  : ""
-                              } hover:bg-muted/45`}
-                            >
-                              {field.value}
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -815,9 +813,9 @@ const DocumentViewer = () => {
               maxWidth: `calc(100% - ${RESERVED_RIGHT}px)`,
             }}
           >
-              {/* insert a small back button at top of panel */}
-                  {/* render fieldsPanel with back button integrated in header */}
-                  {fieldsPanel}
+            {/* insert a small back button at top of panel */}
+            {/* render fieldsPanel with back button integrated in header */}
+            {fieldsPanel}
           </aside>
         )}
 

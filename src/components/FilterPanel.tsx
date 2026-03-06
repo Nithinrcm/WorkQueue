@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
@@ -66,7 +67,6 @@ const FilterPanel = ({
   const [eventOpen, setEventOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
-  const [dateError, setDateError] = useState<string | null>(null);
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -252,15 +252,17 @@ const FilterPanel = ({
                   onSelect={(d) => {
                     if (!d) {
                       onDateFromChange(undefined);
-                      setDateError(null);
                       return;
                     }
-                    // If to-date exists and new from > to, reject and show error
+                    // If to-date exists and new from > to, reject and show toast
                     if (dateTo && d > dateTo) {
-                      setDateError("From date cannot be greater than To date");
+                      toast({
+                        variant: "destructive",
+                        title: "Invalid date range",
+                        description: "From date cannot be greater than To date",
+                      });
                       return;
                     }
-                    setDateError(null);
                     onDateFromChange(d);
                   }}
                   initialFocus
@@ -287,15 +289,17 @@ const FilterPanel = ({
                   onSelect={(d) => {
                     if (!d) {
                       onDateToChange(undefined);
-                      setDateError(null);
                       return;
                     }
-                    // If from-date exists and new to < from, reject and show error
+                    // If from-date exists and new to < from, reject and show toast
                     if (dateFrom && d < dateFrom) {
-                      setDateError("To date cannot be earlier than From date");
+                      toast({
+                        variant: "destructive",
+                        title: "Invalid date range",
+                        description: "To date cannot be earlier than From date",
+                      });
                       return;
                     }
-                    setDateError(null);
                     onDateToChange(d);
                   }}
                   initialFocus
@@ -304,9 +308,7 @@ const FilterPanel = ({
               </PopoverContent>
             </Popover>
           </div>
-          {dateError && (
-            <div className="text-xs text-destructive mt-1">{dateError}</div>
-          )}
+          {/* inline error message removed; errors are now shown via toast */}
         </div>
       </div>
 

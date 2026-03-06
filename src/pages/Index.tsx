@@ -312,7 +312,7 @@ const Index = () => {
             const onMouseMove = (ev: MouseEvent) => {
               const dx = ev.clientX - startX.current;
               const newWidth = Math.min(
-                Math.max(startWidth.current + dx, 220),
+                Math.max(startWidth.current + dx, 260),
                 520,
               );
               setLeftWidth(newWidth);

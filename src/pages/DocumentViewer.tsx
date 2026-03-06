@@ -236,6 +236,19 @@ const DocumentViewer = () => {
     return groups;
   }, [fields]);
 
+  // count of fields that have been manually modified compared to the
+  // original extraction. This is what used to be shown as
+  // "Reviewed x/y" at the top of the fields panel.
+  const reviewedCount = useMemo(() => {
+    if (!doc) return 0;
+    const originalFields = getDocumentFields(doc);
+    return fields.filter((f) => {
+      const orig = originalFields.find((o) => o.key === f.key);
+      // consider undefined vs empty string also a change
+      return orig && f.value !== orig.value;
+    }).length;
+  }, [fields, doc]);
+
   // per-category sort state (none | asc | desc)
   const [categorySort, setCategorySort] = useState<
     Record<string, "none" | "asc" | "desc">
@@ -406,37 +419,48 @@ const DocumentViewer = () => {
     <div className="flex flex-col h-full">
       {/* Header area (non-scrollable) */}
       <div className="shrink-0 p-3 border-b border-border bg-card">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">
-              Extracted Fields
-            </h3>
-          </div>
-          {/* per-field review count removed */}
+        {/* first row: back button on left, reviewed count on right */}
+        <div className="flex items-center justify-between mb-1">
+          {/* slim small back button with text */}
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => navigate("/", { state: { tab: "processed" } })}
+            className="gap-1 h-6 text-xs"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to dashboard
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Reviewed {reviewedCount}/{fields.length}
+          </span>
         </div>
 
-        <div className="mt-2 flex items-center gap-2">
-          {!approved && (
-            <Button
-              size="sm"
-              onClick={handleApproveAll}
-              className="gap-1.5 h-9 text-sm bg-primary text-white hover:bg-primary/90"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Approve All
-            </Button>
-          )}
-          {/* fields list (header moved to page sub-header) */}
-          {/* Approved banner */}
-          {approved && (
-            <div className="rounded-md bg-success/10 border border-success/25 px-3 py-2 flex items-center gap-2">
-              <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0" />
-              <span className="text-xs font-medium text-success">
-                All fields approved
-              </span>
-            </div>
-          )}
-          {/* Flag Issues intentionally removed from left panel per request */}
+        {/* second row: title only */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">
+            Extracted Fields
+          </h3>
+          <div className="flex items-center gap-2">
+            {!approved && (
+              <Button
+                size="sm"
+                onClick={handleApproveAll}
+                className="gap-1.5 h-9 text-sm bg-primary text-white hover:bg-primary/90"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Approve All
+              </Button>
+            )}
+            {approved && (
+              <div className="rounded-md bg-success/10 border border-success/25 px-3 py-2 flex items-center gap-2">
+                <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0" />
+                <span className="text-xs font-medium text-success">
+                  All fields approved
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Scrollable fields */}
@@ -772,11 +796,9 @@ const DocumentViewer = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background">
-      <Header
-        fetchUser={fetchMockUser}
-        onBack={() => navigate("/", { state: { tab: "processed" } })}
-        showBrand={false}
-      />
+      {/* use the same branded header as the dashboard; back button will live
+          inside the fields panel instead */}
+      <Header fetchUser={fetchMockUser} />
 
       {/* Content */}
       <div
@@ -793,7 +815,9 @@ const DocumentViewer = () => {
               maxWidth: `calc(100% - ${RESERVED_RIGHT}px)`,
             }}
           >
-            {fieldsPanel}
+              {/* insert a small back button at top of panel */}
+                  {/* render fieldsPanel with back button integrated in header */}
+                  {fieldsPanel}
           </aside>
         )}
 

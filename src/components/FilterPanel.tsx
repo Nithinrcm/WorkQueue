@@ -1,11 +1,4 @@
-import {
-  Filter,
-  Calendar,
-  Tag,
-  User,
-  ChevronDown,
-  UploadCloud,
-} from "lucide-react";
+import { Filter, Calendar, Tag, ChevronDown, UploadCloud } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,7 +20,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -222,11 +214,6 @@ const FilterPanel = ({
           )}
         </div>
 
-        {/* Uploaded By filter removed per new spec */}
-
-        {/* File type filter removed as per spec; left panel only contains event type and date range */}
-
-        {/* Date Range */}
         <div className="space-y-2">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
             <Calendar className="h-3 w-3" />

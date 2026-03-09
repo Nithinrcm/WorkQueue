@@ -90,6 +90,8 @@ const Index = () => {
   const dragging = useRef(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
+  // mobile filters open state
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // unique uploaders removed - uploaded-by filter not used anymore
 
@@ -287,9 +289,10 @@ const Index = () => {
 
       {/* Main two-column area below header */}
       <div className="flex-1 min-h-0 flex overflow-hidden">
+        {/* desktop sidebar */}
         <div
           style={{ width: leftWidth }}
-          className="shrink-0 border-r border-border flex flex-col"
+          className="shrink-0 border-r border-border flex flex-col hidden md:flex"
         >
           <FilterPanel
             typeFilter={typeFilter}
@@ -301,6 +304,30 @@ const Index = () => {
             onReset={resetFilters}
           />
         </div>
+        {/* mobile overlay filters */}
+        {mobileFiltersOpen && (
+          <div className="fixed inset-0 z-50 bg-background p-4 md:hidden">
+            <div className="flex justify-end mb-4">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setMobileFiltersOpen(false)}
+                aria-label="Close filters"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <FilterPanel
+              typeFilter={typeFilter}
+              onTypeFilterChange={setTypeFilter}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+              onReset={resetFilters}
+            />
+          </div>
+        )}
 
         <div
           role="separator"
@@ -332,7 +359,7 @@ const Index = () => {
         <div className="flex-1 min-h-0 flex flex-col px-6 pb-5">
           {/* Status cards */}
           <div className="shrink-0 px-6 py-4">
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               {/* Total documents card */}
               <button
                 key="total"
@@ -401,7 +428,15 @@ const Index = () => {
           </div>
           {/* Search + filter badges */}
           <div className="flex items-center gap-2 mb-2.5 flex-wrap">
-            <div className="relative w-96">
+            {/* mobile filter button */}
+            <button
+              className="md:hidden p-1"
+              onClick={() => setMobileFiltersOpen(true)}
+              aria-label="Open filters"
+            >
+              <Filter className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <div className="relative w-full max-w-[24rem]">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={search}

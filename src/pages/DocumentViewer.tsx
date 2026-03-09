@@ -17,6 +17,8 @@ import {
   Plus,
   Minus,
   Check,
+  Filter,
+  X,
 } from "lucide-react";
 import Header from "@/components/Header";
 import fetchMockUser from "@/data/user";
@@ -82,6 +84,8 @@ const DocumentViewer = () => {
   const [approved, setApproved] = useState(() =>
     doc ? isDocumentApproved(doc.id) : false,
   );
+  // mobile fields overlay state
+  const [fieldsOpen, setFieldsOpen] = useState(false);
   const [eventType, setEventType] = useState<string>(() => {
     if (!doc) return "Distribution";
     const saved = getSavedDocumentData(doc.id);
@@ -92,6 +96,12 @@ const DocumentViewer = () => {
   const fieldPageMap = useMemo(
     () => (doc ? getFieldPageMap(doc.type) : {}),
     [doc],
+  );
+
+  // validation: detect any empty/unfilled fields so we can disable approval
+  const hasEmptyFields = useMemo(
+    () => fields.some((f) => f.value.trim() === ""),
+    [fields],
   );
 
   // Resizable left panel state
@@ -326,6 +336,16 @@ const DocumentViewer = () => {
   };
 
   const handleApproveAll = () => {
+    // don't allow approving if any field is blank
+    if (hasEmptyFields) {
+      toast({
+        title: "Cannot approve",
+        description: "Please fill in all field values before approving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     approveDocument(doc.id, fields, eventType);
     setApproved(true);
     toast({
@@ -339,7 +359,17 @@ const DocumentViewer = () => {
     saveDocumentData(doc.id, fields, eventType);
     setEditingKey(null);
     if (key) {
-      toast({ title: "Field saved" });
+      const f = fields.find((f) => f.key === key);
+      if (f && f.value.trim() === "") {
+        // if user leaves it blank, show validation error toast
+        toast({
+          title: "Field required",
+          description: "Please provide a value for all fields.",
+          variant: "destructive",
+        });
+      } else {
+        toast({ title: "Field saved" });
+      }
     }
   };
 
@@ -432,7 +462,7 @@ const DocumentViewer = () => {
             Back to dashboard
           </Button>
           <span className="text-sm text-muted-foreground">
-            Reviewed {reviewedCount}/{fields.length}
+            Edited {reviewedCount}/{fields.length}
           </span>
         </div>
 
@@ -447,6 +477,7 @@ const DocumentViewer = () => {
                 size="sm"
                 onClick={handleApproveAll}
                 className="gap-1.5 h-9 text-sm bg-primary text-white hover:bg-primary/90"
+                disabled={hasEmptyFields}
               >
                 <CheckCircle2 className="h-4 w-4" />
                 Approve All
@@ -511,19 +542,40 @@ const DocumentViewer = () => {
 
                             <div className="flex-1">
                               {!approved ? (
-                                <Input
-                                  value={field.value}
-                                  onChange={(e) =>
-                                    updateField(field.key, e.target.value)
-                                  }
-                                  onFocus={() => handleFieldClick(field.key)}
-                                  onBlur={() => handleSaveAndClose(field.key)}
-                                  className={`h-8 text-sm bg-background border-border ${
-                                    activeField === field.key
-                                      ? "bg-primary/8 ring-1 ring-primary/25"
-                                      : ""
-                                  } text-foreground w-full hover:bg-muted/45`}
-                                />
+                                (() => {
+                                  const isEmpty = field.value.trim() === "";
+                                  return (
+                                    <>
+                                      <Input
+                                        value={field.value}
+                                        onChange={(e) =>
+                                          updateField(field.key, e.target.value)
+                                        }
+                                        onFocus={() =>
+                                          handleFieldClick(field.key)
+                                        }
+                                        onBlur={() =>
+                                          handleSaveAndClose(field.key)
+                                        }
+                                        aria-invalid={isEmpty}
+                                        className={`h-8 text-sm bg-background border-border ${
+                                          activeField === field.key
+                                            ? "bg-primary/8 ring-1 ring-primary/25"
+                                            : ""
+                                        } ${
+                                          isEmpty
+                                            ? "border-destructive ring-1 ring-destructive/50"
+                                            : ""
+                                        } text-foreground w-full hover:bg-muted/45`}
+                                      />
+                                      {isEmpty && (
+                                        <p className="text-destructive text-[10px] mt-0.5">
+                                          Required
+                                        </p>
+                                      )}
+                                    </>
+                                  );
+                                })()
                               ) : (
                                 <div
                                   className={`rounded-md bg-background border border-border px-2 py-1 text-muted-foreground font-mono text-sm w-full ${
@@ -735,6 +787,16 @@ const DocumentViewer = () => {
 
           {/* Search + Download beside each other */}
           <div className="flex items-center gap-2">
+            {/* mobile fields toggle */}
+            {isProcessed && (
+              <button
+                className="md:hidden p-1"
+                onClick={() => setFieldsOpen(true)}
+                aria-label="Show fields"
+              >
+                <Filter className="h-5 w-5 text-muted-foreground" />
+              </button>
+            )}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -817,6 +879,22 @@ const DocumentViewer = () => {
             {/* render fieldsPanel with back button integrated in header */}
             {fieldsPanel}
           </aside>
+        )}
+        {/* mobile fields overlay */}
+        {fieldsOpen && isProcessed && (
+          <div className="fixed inset-0 z-50 bg-background p-4 md:hidden">
+            <div className="flex justify-end mb-4">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setFieldsOpen(false)}
+                aria-label="Close fields"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            {fieldsPanel}
+          </div>
         )}
 
         {/* ================= EXCEPTION PANEL ================= */}
